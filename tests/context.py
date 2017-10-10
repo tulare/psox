@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+print('import tests/context.py')
 
 import sys
 import os
