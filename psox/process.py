@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-import sys, os
-import time
-import inspect
+import sys
 from subprocess import Popen, PIPE
 from threading import Thread
 from queue import Queue, Empty
@@ -26,15 +24,12 @@ def dequeue_output(queue) :
     return line
 
 
-def wrap_methods(wrapper, target) :
-    methods = inspect.getmembers(
-        target,
-        predicate = lambda bind : inspect.isroutine(bind) and not bind.__name__.startswith('_')
-        )
-    for method, bind in methods :
-        if method not in wrapper.__class__.__dict__ :
-            wrapper.__dict__[method] = bind
-            
+def docstring_from(base) :
+    def set_docstring(f) :
+        f.__doc__ = getattr(base, f.__name__).__doc__
+        return f
+    return set_docstring
+
 
 class QueuedProcess(object) :
     def __init__(self, args, *, encoding=None) :
@@ -46,22 +41,19 @@ class QueuedProcess(object) :
             close_fds=ON_POSIX
         )
 
-        # thread de capture de STDOUT
+        # thread for STDOUT capture
         self.__stdout = b''
         self.__queueStdOut = Queue()
         self.__threadStdOut = Thread(target=enqueue_output, args=(self.__proc.stdout, self.__queueStdOut))
         self.__threadStdOut.daemon = True
         self.__threadStdOut.start()
 
-        # thread de capture de STDERR
+        # thread for STDERR capture
         self.__stderr = b''
         self.__queueStdErr = Queue()
         self.__threadStdErr = Thread(target=enqueue_output, args=(self.__proc.stderr, self.__queueStdErr))
         self.__threadStdErr.daemon = True
         self.__threadStdErr.start()
-
-        # encapsulation des méthodes de Popen
-        wrap_methods(self, self.__proc)
 
     @property
     def stdin(self) :
@@ -69,15 +61,41 @@ class QueuedProcess(object) :
             
     @property
     def stdout(self) :
+        # get STDOUT data from the queue and add it to cache
         more_data = b''.join(list(iter(lambda : dequeue_output(self.__queueStdOut), None)))
         self.__stdout = b''.join((self.__stdout, more_data))
-        return self.__stdout if not self.encoding else self.__stdout.decode(self.encoding)
+
+        # return cached data as is if there is no encoding, else return it decoded.
+        return self.__stdout
 
     @property
     def stderr(self) :
+        # get STDERR data from the queue and add it to cache
         more_data = b''.join(list(iter(lambda : dequeue_output(self.__queueStdErr), None)))
         self.__stderr = b''.join((self.__stderr, more_data))
-        return self.__stderr if not self.encoding else self.__stderr.decode(self.encoding)
+
+        # return cached data as is if there is no encoding, else return it decoded.
+        return self.__stderr
+
+    @property
+    def bytes(self) :
+        return self.stdout
+
+    @property
+    def text(self) :
+        if self.encoding :
+            return self.stdout.decode(self.encoding)
+        return self.stdout.decode()
+
+    @property
+    def errors(self) :
+        if self.encoding :
+            return self.stderr.decode(self.encoding)
+        return self.stderr.decode()
+
+    @property
+    def pid(self) :
+        return self.__proc.pid
 
     @property
     def returncode(self) :
@@ -85,14 +103,44 @@ class QueuedProcess(object) :
 
     @property
     def args(self) :
-        return self.__proc.returncode
+        return self.__proc.args
 
+    @docstring_from(Popen)
     def communicate(self, input=None, timeout=None) :
-        # envoi des données
-        if self.poll() is None and input is not None :
-            self.stdin.write(input)
-            self.stdin.flush()
+        # if there is input, send it if the process is alive
+        if input is not None :
+            self.write(input)
 
-        # attente avec timeout éventuel et retour
+        # wait for process end with possibly a timeout, then return
         self.wait(timeout)
         return (self.stdout, self.stderr)
+
+    @docstring_from(Popen)
+    def kill(self) :
+        return self.__proc.kill()
+
+    @docstring_from(Popen)
+    def poll(self) :
+        return self.__proc.poll()
+
+    @docstring_from(Popen)
+    def send_signal(self, sig) :
+        return self.__proc.send_signal(sig)
+
+    @docstring_from(Popen)
+    def terminate(self) :
+        return self.__proc.terminate()
+
+    @docstring_from(Popen)    
+    def wait(self, timeout=None, endtime=None) :
+        return self.__proc.wait(timeout, endtime)
+
+    def write(self, data) :
+        if self.poll() is not None :
+            return 0
+        
+        nbytes = self.stdin.write(data)
+        self.stdin.flush()
+
+        return nbytes
+    

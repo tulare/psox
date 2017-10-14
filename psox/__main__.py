@@ -40,8 +40,8 @@ if __name__ == '__main__' :
         return sin.bytes
 
     # préparation des accords
-    scale = 16
-    length = .6
+    scale = 32
+    length = .5
     
     chord_C_Down = makeChord('C', scale=scale, length=length)
     chord_C_Up = makeChord('C', up=True, scale=scale, length=length)
@@ -53,6 +53,7 @@ if __name__ == '__main__' :
     chord_G_Up = makeChord('G', up=True, scale=scale, length=length)
 
     sout = psox.SoxSink()
+    sout.output = psox.Device()
     sout.run()
 
     while True :

@@ -45,7 +45,6 @@ class Sox(tuple) :
         return self.__class__.__name__ + '(' + ','.join(self) + ')'
 
     def __str__(self) :
-        print('str conversion')
         return ' '.join(str(e) for e in self)
 
 
@@ -53,27 +52,28 @@ class File(Sox) :
     ''' File(file, fmt=None, options=None)
     '''
     def __new__(cls, file, fmt=None, options=None) :
-        return Sox.__new__(cls, options, fmt, file)
+        sox_fmt = Sox() if fmt is None else Sox('-t', fmt)
+        return Sox.__new__(cls, options, sox_fmt, file)
 
 
 class Null(File) :
-    ''' Null(fmt=None, options=None)
+    ''' Null(options=None)
     '''
-    def __new__(cls, fmt=None, options=None) :
-        return File.__new__(cls, '-n', fmt, options)
+    def __new__(cls, options=None) :
+        return File.__new__(cls, '-n', None, options)
 
 
 class Device(File) :
-    ''' Device(fmt=None, options=None)
+    ''' Device(fmt='waveaudio', options=None)
     '''
-    def __new__(cls, fmt=None, options=None) :
+    def __new__(cls, fmt='waveaudio', options=None) :
         return File.__new__(cls, '-d', fmt, options)
 
 
 class Pipe(File) :
-    ''' Pipe(fmt='-t sox', options=None)
+    ''' Pipe(fmt='sox', options=None)
     '''
-    def __new__(cls, fmt='-t sox', options=None) :
+    def __new__(cls, fmt='sox', options=None) :
         return File.__new__(cls, '-', fmt, options)
 
 
@@ -87,4 +87,4 @@ class RawPipe(Pipe) :
             '-b', bits,
             '-e', encoding
             )
-        return Pipe.__new__(cls, '-t raw', opts)
+        return Pipe.__new__(cls, 'raw', opts)
