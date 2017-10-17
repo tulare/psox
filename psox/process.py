@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import sys
-from subprocess import Popen, PIPE
+import subprocess
 from threading import Thread
 from queue import Queue, Empty
 
@@ -32,26 +32,42 @@ def docstring_from(base) :
 
 
 class QueuedProcess(object) :
-    def __init__(self, args, *, encoding=None) :
+    def __init__(self, args, *, encoding=None, hidewindow=False) :
         self.encoding = encoding
-        self.__proc = Popen(
+        
+        # set the flags to hide the process window if manded
+        self.startupinfo = subprocess.STARTUPINFO()
+        if hidewindow :
+            self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+        # subprocess creation
+        self.__proc = subprocess.Popen(
             args,
             bufsize=1,
-            stdin=PIPE, stdout=PIPE, stderr=PIPE,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            startupinfo=self.startupinfo,
             close_fds=ON_POSIX
         )
 
         # thread for STDOUT capture
         self.__stdout = b''
         self.__queueStdOut = Queue()
-        self.__threadStdOut = Thread(target=enqueue_output, args=(self.__proc.stdout, self.__queueStdOut))
+        self.__threadStdOut = Thread(
+            target=enqueue_output,
+            args=(self.__proc.stdout, self.__queueStdOut)
+        )
         self.__threadStdOut.daemon = True
         self.__threadStdOut.start()
 
         # thread for STDERR capture
         self.__stderr = b''
         self.__queueStdErr = Queue()
-        self.__threadStdErr = Thread(target=enqueue_output, args=(self.__proc.stderr, self.__queueStdErr))
+        self.__threadStdErr = Thread(
+            target=enqueue_output,
+            args=(self.__proc.stderr, self.__queueStdErr)
+        )
         self.__threadStdErr.daemon = True
         self.__threadStdErr.start()
 
@@ -105,7 +121,7 @@ class QueuedProcess(object) :
     def args(self) :
         return self.__proc.args
 
-    @docstring_from(Popen)
+    @docstring_from(subprocess.Popen)
     def communicate(self, input=None, timeout=None) :
         # if there is input, send it if the process is alive
         if input is not None :
@@ -115,23 +131,23 @@ class QueuedProcess(object) :
         self.wait(timeout)
         return (self.stdout, self.stderr)
 
-    @docstring_from(Popen)
+    @docstring_from(subprocess.Popen)
     def kill(self) :
         return self.__proc.kill()
 
-    @docstring_from(Popen)
+    @docstring_from(subprocess.Popen)
     def poll(self) :
         return self.__proc.poll()
 
-    @docstring_from(Popen)
+    @docstring_from(subprocess.Popen)
     def send_signal(self, sig) :
         return self.__proc.send_signal(sig)
 
-    @docstring_from(Popen)
+    @docstring_from(subprocess.Popen)
     def terminate(self) :
         return self.__proc.terminate()
 
-    @docstring_from(Popen)    
+    @docstring_from(subprocess.Popen)    
     def wait(self, timeout=None, endtime=None) :
         return self.__proc.wait(timeout, endtime)
 

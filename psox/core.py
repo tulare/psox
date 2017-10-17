@@ -20,13 +20,14 @@ def enqueue_output(out, queue) :
 
 
 class SoxProcess(QueuedProcess) :
-    def __init__(self, *, inputs=None, output=None, effects=None, encoding=None) :
+    def __init__(self, *, inputs=None, output=None, effects=None,
+                 encoding=None, hidewindow=True) :
         self.exe = (SOXPATH+'/sox',)
         self.inputs = inputs
         self.output = output
         self.effects = effects
         sox_cmd = self.exe + self.inputs + self.output + self.effects
-        super().__init__(sox_cmd, encoding=encoding)
+        super().__init__(sox_cmd, encoding=encoding, hidewindow=hidewindow)
 
         # let a little time for the process to start
         try :
