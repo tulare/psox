@@ -1,79 +1,51 @@
 # -*- encoding: utf-8 -*-
 import time
-import psox
+from psox import *
+from psox.synth import build_chord
+from psox.ukulele import CHORDS as ukuleleChords
 
 if __name__ == '__main__' :
 
-    ukuleleChords = {
-        'C' :   ('G4','C4','E4','C5'),
-        'Am':   ('A4','C4','E4','A4'),
-        'F' :   ('A4','C4','F4','A4'),
-        'G' :   ('G4','D4','G4','B4'),
-    }
-
     def makeChord(chord, up=False, scale=20, length=1) :
-        print('#', end='', flush=True)
-        notes = psox.core.synth(ukuleleChords,'pluck')[chord]
 
-        if not up :
-            _scale = [i/scale for i in range(4)]
-        else :
-            _scale = [i/scale for i in reversed(range(4))]
+        sin = SoxSource(
+            effects = build_chord(ukuleleChords, chord, up, scale, length)
+        )
 
-        delay = psox.Sox('delay', _scale)
-
-        remix = psox.Sox('remix - -')
-        fade = psox.Sox('fade 0', length)
-        norm = psox.Sox('gain -n -1')
-            
-        sin = psox.SoxSource()
-        sin.effects = psox.types.Sox('synth', notes, delay, remix, fade, norm)
-        sin.run()
-
-        while True :
-            time.sleep(1/100)
-            if sin.ready :
-                break
-
-        sin.capture()
+        sin.communicate()
         
-        return sin.bytes
+        return sin.stdout
 
     # préparation des accords
     scale = 32
-    length = .5
+    length = .3
+
+    chords = dict()
+    for chord in ukuleleChords :
+        print('make', chord)
+        chords[(chord, 'Down')] = makeChord(chord, scale=scale, length=length)
+        chords[(chord , 'Up')] = makeChord(chord, up=True, scale=scale, length=length)
     
-    chord_C_Down = makeChord('C', scale=scale, length=length)
-    chord_C_Up = makeChord('C', up=True, scale=scale, length=length)
-    chord_Am_Down = makeChord('Am', scale=scale, length=length)
-    chord_Am_Up = makeChord('Am', up=True, scale=scale, length=length)
-    chord_F_Down = makeChord('F', scale=scale, length=length)
-    chord_F_Up = makeChord('F', up=True, scale=scale, length=length)
-    chord_G_Down = makeChord('G', scale=scale, length=length)
-    chord_G_Up = makeChord('G', up=True, scale=scale, length=length)
-
-    sout = psox.SoxSink()
-    sout.output = psox.Device()
-    sout.run()
-
-    while True :
-        if sout.running :
-            break
+    sout = SoxSink()
 
     for n in range(2) :
-        sout.write(chord_C_Down)
-        sout.write(chord_C_Up)
+        sout.stdin.write(chords[('C', 'Down')])
+        sout.stdin.write(chords[('C', 'Up')])
 
     for n in range(2) :
-        sout.write(chord_Am_Down)
-        sout.write(chord_Am_Up)
+        sout.stdin.write(chords[('Am', 'Down')])
+        sout.stdin.write(chords[('Am', 'Up')])
 
     for n in range(2) :
-        sout.write(chord_F_Down)
-        sout.write(chord_F_Up)
+        sout.stdin.write(chords[('F', 'Down')])
+        sout.stdin.write(chords[('F', 'Up')])
 
     for n in range(2) :
-        sout.write(chord_G_Down)
-        sout.write(chord_G_Up)
+        sout.stdin.write(chords[('G', 'Down')])
+        sout.stdin.write(chords[('G', 'Up')])
 
-    sout.close()
+    for c in chords :
+        print(c)
+        sout.stdin.write(chords[c])
+
+    sout.terminate()

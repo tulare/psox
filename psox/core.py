@@ -3,30 +3,24 @@
 import os, sys
 
 from .types import *
-from .process import QueuedProcess
+from .process import QueuedPopen
 from subprocess import TimeoutExpired
 
 
 __all__ = [ 'SoxProcess', 'Soxi', 'Play', 'Rec', 'SoxSource', 'SoxSink' ]
 
+
 SOXPATH = os.environ.get('SOXPATH', '.')
 
-ON_POSIX = 'posix' in sys.builtin_module_names
 
-def enqueue_output(out, queue) :
-    for line in iter(out.readline, b'') :
-        queue.put(line)
-    out.close()
-
-
-class SoxProcess(QueuedProcess) :
-    def __init__(self, *, inputs=None, output=None, effects=None,
+class SoxProcess(QueuedPopen) :
+    def __init__(self, *, sources=None, dest=None, effects=None,
                  encoding=None, hidewindow=True) :
         self.exe = (SOXPATH+'/sox',)
-        self.inputs = inputs
-        self.output = output
+        self.sources = sources
+        self.dest = dest
         self.effects = effects
-        sox_cmd = self.exe + self.inputs + self.output + self.effects
+        sox_cmd = self.exe + self.sources + self.dest + self.effects
         super().__init__(sox_cmd, encoding=encoding, hidewindow=hidewindow)
 
         # let a little time for the process to start
@@ -37,23 +31,23 @@ class SoxProcess(QueuedProcess) :
 
     @property
     def config(self) :
-        return (self.inputs, self.output, self.effects)
+        return (self.sources, self.dest, self.effects)
 
     @property
-    def inputs(self) :
-        return self.__inputs
+    def sources(self) :
+        return self.__sources
 
-    @inputs.setter
-    def inputs(self, inputs) :
-        self.__inputs = Sox(inputs)
+    @sources.setter
+    def sources(self, sources) :
+        self.__sources = Sox(sources)
 
     @property
-    def output(self) :
-        return self.__output
+    def dest(self) :
+        return self.__dest
 
-    @output.setter
-    def output(self, output) :
-        self.__output = Sox(output)
+    @dest.setter
+    def dest(self, dest) :
+        self.__dest = Sox(dest)
 
     @property
     def effects(self) :
@@ -68,11 +62,11 @@ class Soxi(SoxProcess) :
     '''
     Soxi
     '''
-    def __init__(self, *, inputs=None, options=None, encoding=None) :
+    def __init__(self, *, sources=None, options=None, encoding=None) :
         super().__init__(
-            inputs=Sox('--info'),
-            output=options,
-            effects=inputs,
+            sources=Sox('--info'),
+            dest=options,
+            effects=sources,
             encoding=encoding
             )
 
@@ -81,10 +75,10 @@ class Play(SoxProcess) :
     '''
     Play
     '''
-    def __init__(self, *, inputs, device=Device() ,effects=None, encoding=None) :
+    def __init__(self, *, sources, device=Device(), effects=None, encoding=None) :
         super().__init__(
-            inputs=inputs,
-            output=device,
+            sources=sources,
+            dest=device,
             effects=effects,
             encoding=encoding
             )
@@ -94,10 +88,10 @@ class Rec(SoxProcess) :
     '''
     Rec
     '''
-    def __init__(self, *, output, device=Device(), effects=None, encoding=None) :
+    def __init__(self, *, dest, device=Device(), effects=None, encoding=None) :
         super().__init__(
-            inputs=device,
-            output=output,
+            sources=device,
+            dest=dest,
             effects=effects,
             encoding=encoding
             )
@@ -107,10 +101,10 @@ class SoxSource(SoxProcess) :
     '''
     SoxSource
     '''
-    def __init__(self, *, inputs=Null(), output=RawPipe(), effects=None, encoding=None) :
+    def __init__(self, *, sources=Null(), dest=RawPipe(), effects=None, encoding=None) :
         super().__init__(
-            inputs=inputs,
-            output=output,
+            sources=sources,
+            dest=dest,
             effects=effects,
             encoding=encoding
             )
@@ -120,10 +114,10 @@ class SoxSink(SoxProcess) :
     '''
     SoxSink
     '''
-    def __init__(self, *, inputs=RawPipe(), output=Device(), effects=None, encoding=None) :
+    def __init__(self, *, sources=RawPipe(), dest=Device(), effects=None, encoding=None) :
         super().__init__(
-            inputs=inputs,
-            output=output,
+            sources=sources,
+            dest=dest,
             effects=effects,
             encoding=encoding
         )

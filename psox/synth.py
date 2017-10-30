@@ -2,6 +2,9 @@
 
 import math
 from struct import pack, unpack
+from psox import Sox
+
+__all__ = [ 'AudioFunction', 'synth', 'build_chord' ]
 
 def sign(x) :
     return (x > 0) - (x < 0)
@@ -13,6 +16,22 @@ def synth(accords, type='pluck') :
 
     return dicoPlucks
 
+def build_chord(refchords, chord, up=False, scale=20, length=1) :
+    nb_notes = len(refchords[chord])
+    notes = synth(refchords, 'pluck')[chord]
+
+    if not up :
+        _scale = [i/scale for i in range(nb_notes)]
+    else :
+        _scale = [i/scale for i in reversed(range(nb_notes))]
+
+    delay = Sox('delay', _scale)
+    remix = Sox('remix - -')
+    fade = Sox('fade 0', length)
+    norm = Sox('gain -n -1')
+
+    return Sox('synth', notes, delay, remix, fade, norm)
+    
 class AudioFunction(object) :
     def __init__(self, fn, *, channels=2, rate=44100, bits=16, encoding='signed') :
 
