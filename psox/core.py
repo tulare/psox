@@ -14,9 +14,10 @@ SOXPATH = os.environ.get('SOXPATH', '.')
 
 
 class SoxProcess(QueuedPopen) :
+    exe = (SOXPATH+'/sox',)
+    
     def __init__(self, *, sources=None, dest=None, effects=None,
                  encoding=None, hidewindow=True) :
-        self.exe = (SOXPATH+'/sox',)
         self.sources = sources
         self.dest = dest
         self.effects = effects
@@ -25,7 +26,7 @@ class SoxProcess(QueuedPopen) :
 
         # let a little time for the process to start
         try :
-            self.communicate(timeout=.1)
+            self.wait(timeout=.1)
         except TimeoutExpired :
             pass
 
