@@ -10,8 +10,7 @@ from subprocess import TimeoutExpired
 __all__ = [ 'SoxProcess', 'Soxi', 'Play', 'Rec', 'SoxSource', 'SoxSink' ]
 
 
-SOXPATH = os.environ.get('SOXPATH', '.')
-
+SOXPATH = os.environ.get('SOXPATH', os.path.dirname(sys.executable))
 
 class SoxProcess(QueuedPopen) :
     exe = (SOXPATH+'/sox',)
