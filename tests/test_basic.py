@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from .context import psox
+# from .context import psox
 
 import unittest
-
-
+import psox
 
 class TypesTestSuite(unittest.TestCase):
     """Basic test cases."""
 
     def test_psox_types_000_Sox(self) :
-        Sox = psox.types.Sox 
+        Sox = psox.soxtypes.Sox 
         assert Sox() == ()
         assert Sox(None) == Sox()
         assert Sox(1) == ('1',)
