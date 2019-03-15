@@ -2,7 +2,7 @@
 
 import math
 from struct import pack, unpack
-from psox import Sox
+from .soxtypes import Sox
 
 __all__ = [ 'AudioFunction', 'synth', 'build_chord' ]
 

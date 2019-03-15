@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
 import time
-from psox import *
-from psox.synth import build_chord
-from psox.ukulele import CHORDS as ukuleleChords
+
+from . import *
+from .synth import build_chord
+from .ukulele import CHORDS as ukuleleChords
 
 if __name__ == '__main__' :
 

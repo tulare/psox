@@ -2,7 +2,7 @@
 
 import os, sys
 
-from .types import *
+from .soxtypes import *
 from .process import QueuedPopen
 from subprocess import TimeoutExpired
 

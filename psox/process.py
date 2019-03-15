@@ -97,23 +97,34 @@ class QueuedPopen(metaclass=PopenProxy) :
     def __init__(self, args, *, encoding=None, hidewindow=False) :
         # used to convert bytes to str
         self.encoding = encoding
-        
-        # set the flags to hide the process window if manded
-        self.startupinfo = subprocess.STARTUPINFO()
-        if hidewindow :
-            self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        # subprocess creation
-        self._proxy = self._proxy_class(
-            args,
-            bufsize=1,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            startupinfo=self.startupinfo,
-            close_fds=ON_POSIX
-        )
+        if not ON_POSIX :
+            # set the flags to hide the process window if manded
+            self.startupinfo = subprocess.STARTUPINFO()
+            if hidewindow :
+                self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
+            # subprocess creation
+            self._proxy = self._proxy_class(
+                args,
+                bufsize=1,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                startupinfo=self.startupinfo,
+                close_fds=ON_POSIX
+            )
+        else :
+            # subprocess creation
+            self._proxy = self._proxy_class(
+                args,
+                bufsize=1,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                close_fds=ON_POSIX
+            )
+            
         # thread for queueing STDOUT
         self.__stdout = b''
         self.__queueStdOut = Queue()
