@@ -47,6 +47,13 @@ class Sox(tuple) :
     def __str__(self) :
         return ' '.join(str(e) for e in self)
 
+class Device(Sox) :
+    ''' Device(fmt='waveaudio', default=False)
+    '''
+    def __new__(cls, fmt='waveaudio', default=False) :
+        dev_fmt = Sox('-t', fmt) if fmt else Sox()
+        dev_opts = Sox('-d') if default else Sox()
+        return Sox.__new__(cls, dev_fmt, dev_opts)
 
 class File(Sox) :
     ''' File(file, fmt=None, options=None)
@@ -61,14 +68,6 @@ class Null(File) :
     '''
     def __new__(cls, options=None) :
         return File.__new__(cls, '-n', None, options)
-
-
-class Device(File) :
-    ''' Device(fmt='waveaudio', options=None)
-    '''
-    def __new__(cls, fmt='waveaudio', options=None) :
-        return File.__new__(cls, '-d', fmt, options)
-
 
 class Pipe(File) :
     ''' Pipe(fmt='sox', options=None)
