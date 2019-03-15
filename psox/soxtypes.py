@@ -48,12 +48,11 @@ class Sox(tuple) :
         return ' '.join(str(e) for e in self)
 
 class Device(Sox) :
-    ''' Device(fmt='waveaudio', default=False)
+    ''' Device(fmt='waveaudio')
     '''
-    def __new__(cls, fmt='waveaudio', default=False) :
-        dev_fmt = Sox('-t', fmt) if fmt else Sox()
-        dev_opts = Sox('-d') if default else Sox()
-        return Sox.__new__(cls, dev_fmt, dev_opts)
+    def __new__(cls, fmt=None) :
+        dev_fmt = Sox('-t', fmt) if fmt else Sox('-d')
+        return Sox.__new__(cls, dev_fmt)
 
 class File(Sox) :
     ''' File(file, fmt=None, options=None)

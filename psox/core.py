@@ -11,7 +11,9 @@ __all__ = [ 'SoxProcess', 'Soxi', 'Play', 'Rec', 'SoxSource', 'SoxSink' ]
 
 
 SOXPATH = os.environ.get('SOXPATH', os.path.dirname(sys.executable))
-
+if sys.platform == 'win32' :
+    os.environ['AUDIODRIVER'] = 'waveaudio'
+    
 class SoxProcess(QueuedPopen) :
     exe = (SOXPATH+'/sox',)
     
