@@ -1,25 +1,19 @@
-# -*- coding: utf-8 -*-
-
 # Learn more: https://github.com/kennethreitz/setup.py
 
-from setuptools import setup, find_packages
-
-
-with open('README.md') as f:
-    readme = f.read()
+from setuptools import setup
 
 with open('LICENSE') as f:
     license = f.read()
 
-setup(
-    name='psox',
-    version='0.1.0',
-    description='Encapsulation process sox.exe',
-    long_description=readme,
-    author='Tulare Regnus',
-    author_email='tulare.paxgalactica@gmail.com',
-    url='https://github.com/tulare/psox',
-    license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
-)
+# Get version without import module
+with open('src/psox/version.py') as f :
+    exec(compile(f.read(), 'psox/version.py', 'exec'))
 
+setup(
+    version=__version__,
+    license=license,
+    package_dir = {
+        '' : str('src')
+    },
+)
+          

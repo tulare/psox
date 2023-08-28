@@ -1,1 +1,10 @@
 include LICENSE
+include requirements.txt
+include tox.ini
+
+recursive-include tests *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * desktop.ini
+
+recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
