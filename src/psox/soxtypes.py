@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-__all__ = [ 'Sox', 'File', 'Null', 'Device', 'Pipe', 'RawPipe' ]
+__all__ = [ 'Sox', 'File', 'RawFile', 'Null', 'Device', 'Pipe', 'RawPipe' ]
 
 def iterable(obj) :
     try :
@@ -61,6 +61,17 @@ class File(Sox) :
         sox_fmt = Sox() if fmt is None else Sox('-t', fmt)
         return Sox.__new__(cls, options, sox_fmt, file)
 
+class RawFile(File) :
+    ''' RawFile(file, channels=2, rate=44100, bits=16, encoding='signed')
+    '''
+    def __new__(cls, file, channels=2, rate=44100, bits=16, encoding='signed') :
+        opts = Sox(
+            '-c', channels,
+            '-b', bits,
+            '-r', rate,
+            '-e', encoding
+        )
+        return File.__new__(cls, file, fmt='raw', options=opts)
 
 class Null(File) :
     ''' Null(options=None)
