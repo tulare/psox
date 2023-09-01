@@ -4,10 +4,15 @@ import math
 from struct import pack, unpack
 from .soxtypes import Sox
 
-__all__ = [ 'AudioFunction', 'synth', 'build_chord' ]
+__all__ = [ 'AudioFunction', 'synth', 'build_chord', 'sampling' ]
 
 def sign(x) :
     return (x > 0) - (x < 0)
+
+def unsigned(n, *, bits=16) :
+    ''' convert signed to unsigned
+    '''
+    return n + (1 << bits - 1)
 
 def synth(accords, type='pluck') :
     dicoPlucks = dict()
@@ -32,7 +37,67 @@ def build_chord(refchords, chord, up=False, scale=20, length=1) :
 
     return Sox('synth', notes, delay, remix, fade, norm)
     
-class AudioFunction(object) :
+
+def sampling(in_buffer, *, channels=2, rate=44100, bits=16, encoding='signed') :
+
+    inbuf_size = len(in_buffer)
+    base = 1 << bits - 1
+    sample_size = channels * bits >> 3
+    outbuf = bytearray(inbuf_size * sample_size)
+    chan_len = int(sample_size / channels)
+
+    for i in range(inbuf_size) :
+        sample = in_buffer[i]
+        # signed sampling
+        if sample > 0 :
+            data = int(min(base - 1, math.floor(base * sample)))
+        else :
+            data = int(max(-base, math.ceil(base * sample)))
+
+        current = i * sample_size
+        to_next = current + sample_size
+
+        if encoding in ('signed','signed-integer') :
+            outbuf[current:to_next] = data.to_bytes(length=chan_len, byteorder='little', signed=True) * channels
+        if encoding in ('unsigned', 'unsigned-integer') :
+            outbuf[current:to_next] = unsigned(data, bits=bits).to_bytes(length=chan_len, byteorder='little', signed=False) * channels
+        
+    return outbuf
+
+class AudioFunction :
+
+    def __init__(self, fn, *, channels=2, rate=44100, bits=16, encoding='signed') :
+
+        self._fn = fn
+
+        self.channels = channels
+        self.rate = rate
+        self.bits = bits
+        self.encoding = encoding
+
+        self.base = 1 << bits - 1
+        self.size = channels * bits >> 3
+        self.delta = 1 / self.rate
+
+        self.t = 0.0
+        self.count = 0
+
+    def get_values(self, count=1024) :
+        values = []
+        for n in range(count) :
+            value = self._fn(self.t, self.count)
+            values.append(value)
+            self.t += self.delta
+            self.count += 1
+            
+        return values
+
+    def getsample(self, nbytes=4096) :
+        n_values = int(nbytes / self.size)
+        values = self.get_values(n_values)
+        return sampling(values, channels=self.channels, rate=self.rate, bits=self.bits, encoding=self.encoding)
+
+class AudioFunctionZ(object) :
     def __init__(self, fn, *, channels=2, rate=44100, bits=16, encoding='signed') :
 
         self._fn = fn
