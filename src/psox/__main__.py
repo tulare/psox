@@ -5,17 +5,18 @@ from . import *
 from .synth import build_chord
 from .ukulele import CHORDS as ukuleleChords
 
-if __name__ == '__main__' :
+def makeChord(chord, up=False, scale=20, length=1) :
 
-    def makeChord(chord, up=False, scale=20, length=1) :
+    sin = SoxSource(
+        effects = build_chord(ukuleleChords, chord, up, scale, length)
+    )
 
-        sin = SoxSource(
-            effects = build_chord(ukuleleChords, chord, up, scale, length)
-        )
+    sin.communicate()
+    
+    return sin.stdout
 
-        sin.communicate()
-        
-        return sin.stdout
+
+def main() :
 
     # préparation des accords
     scale = 32
@@ -50,3 +51,6 @@ if __name__ == '__main__' :
         sout.stdin.write(chords[c])
 
     sout.terminate()
+
+if __name__ == '__main__' :
+    main()
