@@ -1,5 +1,3 @@
-# Learn more: https://github.com/kennethreitz/setup.py
-
 from setuptools import setup
 
 def readme() :
@@ -30,7 +28,7 @@ setup(
     author='Tulare Regnus',
     author_email='tulare.paxgalactica@gmail.com',
     license=license(),
-    package_dir={'psox' : str('src/psox')},
+    package_dir={'psox' : 'src/psox'},
     packages=['psox'],
     package_data={'psox' : ['*.dll']},
     include_package_data=True,
@@ -43,8 +41,8 @@ setup(
     data_files=[
         ('scripts', ['bin/libmad.dll', 'bin/libmp3lame.dll'])
     ],
-    test_suite='nose.collector',
-    tests_require=['nose'],
+    test_suite='nose2.collector.collector',
+    tests_require=['nose2'],
     zip_safe=False
 )
           
