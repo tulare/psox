@@ -1,13 +1,6 @@
-# -*- encoding: utf-8 -*-
+from .helpers import is_iterable, get_short_path_name
 
-__all__ = [ 'Sox', 'File', 'RawFile', 'Null', 'Device', 'Pipe', 'RawPipe' ]
-
-def iterable(obj) :
-    try :
-        iter(obj)
-        return True
-    except :
-        return False
+__all__ = [ 'Sox', 'File', 'NewFile', 'RawFile', 'Null', 'Device', 'Pipe', 'RawPipe' ]
 
 
 class Sox(tuple) :
@@ -32,7 +25,7 @@ class Sox(tuple) :
             t = ()
 
         # head sous-séquence => récurrence *head
-        elif iterable(elems[0]) :
+        elif is_iterable(elems[0]) :
             t = Sox(*elems[0])
 
         # head autre => conversion en chaîne
@@ -59,7 +52,36 @@ class File(Sox) :
     '''
     def __new__(cls, file, fmt=None, options=None) :
         sox_fmt = Sox() if fmt is None else Sox('-t', fmt)
+        if file not in ('-','-n') :
+            try :
+                fd = open(file, 'r')
+                fd.close()
+                file = get_short_path_name(file)
+            except PermissionError as e :
+                print(e)
+                file = '-n'
+            except FileNotFoundError as e :
+                print(e)
+                file = '-n'
         return Sox.__new__(cls, options, sox_fmt, file)
+
+class NewFile(File) :
+    ''' NewFile(file, overwrite=False, fmt=None, options=None)
+    '''
+    def __new__(cls, file, overwrite=False, fmt=None, options=None) :
+        if file not in ('-', '-n') :            
+            mode = 'w' if overwrite else 'x'
+            try :
+                fd = open(file, mode)
+                fd.close()
+            except PermissionError as e :
+                print(e)
+                file = '-n'
+            except FileExistsError as e :
+                print(e)
+                file = '-n'
+        return File.__new__(cls, file=file, fmt=fmt, options=options)
+        
 
 class RawFile(File) :
     ''' RawFile(file, channels=2, rate=44100, bits=16, encoding='signed')
@@ -71,19 +93,19 @@ class RawFile(File) :
             '-r', rate,
             '-e', encoding
         )
-        return File.__new__(cls, file, fmt='raw', options=opts)
+        return File.__new__(cls, file=file, fmt='raw', options=opts)
 
 class Null(File) :
     ''' Null(options=None)
     '''
     def __new__(cls, options=None) :
-        return File.__new__(cls, '-n', None, options)
+        return File.__new__(cls, file='-n', fmt=None, options=options)
 
 class Pipe(File) :
     ''' Pipe(fmt='sox', options=None)
     '''
     def __new__(cls, fmt='sox', options=None) :
-        return File.__new__(cls, '-', fmt, options)
+        return File.__new__(cls, file='-', fmt=fmt, options=options)
 
 
 class RawPipe(Pipe) :
@@ -96,4 +118,4 @@ class RawPipe(Pipe) :
             '-b', bits,
             '-e', encoding
             )
-        return Pipe.__new__(cls, 'raw', opts)
+        return Pipe.__new__(cls, fmt='raw', options=opts)
