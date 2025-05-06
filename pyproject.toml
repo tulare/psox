@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "psox"
+authors = [
+  { name="Tulare Regnus", email="tulare.paxgalactica@gmail.com" },
+]
+description = "Encapsulation process sox.exe"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+keywords = ["python","sox","audio","sound"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Sound Processing :: Audio"
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+dynamic = ["version"]
+
+[project.scripts]
+psox_demo = "psox.demo:main"
+psox_embed = "psox.embed:install"
+
+[project.urls]
+Homepage = "https://github.com/tulare/psox"
+Repository = "https://github.com/tular/psox.git"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "psox.__version__"}

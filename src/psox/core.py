@@ -15,7 +15,7 @@ if sys.platform == 'win32' :
     os.environ['AUDIODRIVER'] = 'waveaudio'
     
 class SoxProcess(QueuedPopen) :
-    exe = (SOXPATH+'/sox',)
+    exe = (SOXPATH+'/sox.exe',)
     
     def __init__(self, *, sources=None, dest=None, effects=None,
                  encoding=None, hidewindow=True) :

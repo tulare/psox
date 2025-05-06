@@ -9,8 +9,8 @@
 @ECHO -- Installation tools 7z
 @RMDIR /Q /S %RUNTIME_DIR%\7z
 @MD %RUNTIME_DIR%\7z
-@curl --ssl-no-revoke https://www.7-zip.org/a/7zr.exe --output 7zr.exe
-@curl --ssl-no-revoke https://www.7-zip.org/a/7z2301-x64.exe --output 7z2301-x64.exe
+@curl --ssl-no-revoke -L https://www.7-zip.org/a/7zr.exe --output 7zr.exe
+@curl --ssl-no-revoke -L https://www.7-zip.org/a/7z2301-x64.exe --output 7z2301-x64.exe
 @7zr.exe x 7z2301-x64.exe -o%RUNTIME_DIR%\7z
 @DEL 7zr.exe 7z2301-x64.exe
 
@@ -26,4 +26,4 @@
 @COPY %SOX_ROOT%\sox.exe %SOX_ROOT%\play.exe
 @COPY %SOX_ROOT%\sox.exe %SOX_ROOT%\rec.exe
 @COPY %SOX_ROOT%\sox.exe %SOX_ROOT%\soxi.exe
-@COPY %SCRIPT_DIR%\libm*.dll %SOX_ROOT%
+@COPY %SCRIPT_DIR%\*.dll %SOX_ROOT%

@@ -1,7 +1,13 @@
+# -*- coding: utf-8 -*-
+
+import logging
+logger = logging.getLogger(__name__)
+
 from .helpers import is_iterable, get_short_path_name
 
 __all__ = [ 'Sox', 'File', 'NewFile', 'RawFile', 'Null', 'Device', 'Pipe', 'RawPipe' ]
 
+# ------------------------------------------------------------------------------
 
 class Sox(tuple) :
     ''' Sox(*elems)
@@ -58,10 +64,10 @@ class File(Sox) :
                 fd.close()
                 file = get_short_path_name(file)
             except PermissionError as e :
-                print(e)
+                logger.debug(f'{cls.__name__}:PermissionError: {e}')
                 file = '-n'
             except FileNotFoundError as e :
-                print(e)
+                logger.debug(f'{cls.__name__}:FileNotFoundError: {e}')
                 file = '-n'
         return Sox.__new__(cls, options, sox_fmt, file)
 
@@ -75,10 +81,10 @@ class NewFile(File) :
                 fd = open(file, mode)
                 fd.close()
             except PermissionError as e :
-                print(e)
+                logger.debug(f'{cls.__name__}:PermissionError: {e}')
                 file = '-n'
             except FileExistsError as e :
-                print(e)
+                logger.debug(f'{cls.__name__}:FileExistsError: {e}')
                 file = '-n'
         return File.__new__(cls, file=file, fmt=fmt, options=options)
         

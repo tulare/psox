@@ -1,5 +1,7 @@
 # Project
-data
+# data
+/tests/*
+!/tests/*.py
 
 # Folder preferences
 desktop.ini
